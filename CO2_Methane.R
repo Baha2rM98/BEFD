@@ -154,6 +154,7 @@ par(mfrow = c(1, 1))
 # Arima Models
 ########################################################################################################
 diff1 <- diff(CO2_ts)
+tsdisplay(diff1, lag.max = 22 * 12)
 
 # Seasonal differencing to remove the seasonal pattern
 diff_seasonal <- diff(diff1, lag = 12)
@@ -173,7 +174,7 @@ f1 <- forecast(arima_model1, h = 12)
 plot(f1)
 
 r1 <- residuals(arima_model1)
-tsdisplay(r2, lag.max = 22 * 12)
+tsdisplay(r1, lag.max = 22 * 12)
 
 accuracy_arima_fit1 <- accuracy(f1)
 
@@ -181,6 +182,8 @@ accuracy_arima_fit1 <- accuracy(f1)
 # second arima model (auto arima)
 auto.a <- auto.arima(CO2_ts)
 auto.a_fit1 <- fitted(auto.a)
+
+summary(auto.a)
 
 plot(CO2_ts)
 lines(auto.a_fit1, col = 2)
@@ -197,7 +200,7 @@ accuracy_arima_fit2 <- accuracy(f2)
 ##################################################################################################################
 # Methane
 ##################################################################################################################
-df2 <- read.csv("D:\\University\\2024 - 2025 B\\Business,Economic, and Financial data\\global-methane-concentrations.csv")
+df2 <- read.csv("data/global-methane-concentrations.csv")
 View(df2)
 attach(df2)
 head(df2)
@@ -343,6 +346,7 @@ par(mfrow = c(1, 1))
 # Arima Models
 ########################################################################################################
 diff1 <- diff(Methane_ts)
+tsdisplay(diff1, lag.max = 50 * 12)
 
 # Seasonal differencing to remove the seasonal pattern
 diff_seasonal <- diff(diff1, lag = 12)
@@ -362,7 +366,7 @@ f1 <- forecast(arima_model1, h = 60)
 plot(f1)
 
 r1 <- residuals(arima_model1)
-tsdisplay(r2, lag.max = 50 * 12)
+tsdisplay(r1, lag.max = 50 * 12)
 
 accuracy_arima_fit1 <- accuracy(f1)
 
@@ -370,6 +374,8 @@ accuracy_arima_fit1 <- accuracy(f1)
 # second arima model (auto arima)
 auto.a <- auto.arima(Methane_ts)
 auto.a_fit1 <- fitted(auto.a)
+
+summary(auto.a)
 
 plot(Methane_ts)
 lines(auto.a_fit1, col = 2)

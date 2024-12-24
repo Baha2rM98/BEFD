@@ -152,18 +152,18 @@ diff_seasonal <- diff(diff1, lag = 12)
 tsdisplay(diff_seasonal, lag.max = 600)
 
 
-# first arima model
-arima_model1 <- Arima(CO2_ts, order = c(1, 1, 1), seasonal = c(1, 0, 0))
+# SARIMA model
+arima_model1 <- Arima(sea_level_ts_new, order = c(1, 1, 1), seasonal = list(order = c(1, 0, 0), period = 4))
 fit1 <- fitted(arima_model1)
 
-plot(CO2_ts)
+plot(sea_level_ts_new)
 lines(fit1, col = 2)
 
-f1 <- forecast(arima_model1, h = 12)
+f1 <- forecast(arima_model1, h = 4)
 plot(f1)
 
 r1 <- residuals(arima_model1)
-tsdisplay(r2, lag.max = 600)
+tsdisplay(r2, lag.max = 500)
 
 accuracy_arima_fit1 <- accuracy(f1)
 
@@ -175,12 +175,10 @@ auto.a_fit1 <- fitted(auto.a)
 plot(sea_level_ts_new)
 lines(auto.a_fit1, col = 2)
 
-f2 <- forecast(auto.a, h = 12)
+f2 <- forecast(auto.a, h = 4)
 plot(f2)
 
 r2 <- residuals(auto.a)
-tsdisplay(r2, lag.max = 22 * 12, main = 'Residuals for Auto-Arima model')
+tsdisplay(r2, lag.max = 500, main = 'Residuals for Auto-Arima model')
 
 accuracy_arima_fit2 <- accuracy(f2)
-
-

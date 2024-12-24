@@ -237,25 +237,60 @@ United_kingdom_holt <- perform_holt(United_kingdom, "United Kingdom")
 ##########################################################################################################################
 ## Arima Models
 ##########################################################################################################################
+# perform_arima <- function(data, country_name, forecast_horizon = 5) {
+#   ts_data <- ts(data, frequency = 1, start = c(1940, 1))
+#   ts_data <- diff(ts_data)
+#   ts_data <- diff(ts_data, lag = 1)
+#   arima_model <- auto.arima(ts_data)
+#   fc_arima <- forecast(arima_model, h = forecast_horizon)
+#   cat("5 Years Forecast for  ", country_name, ":\n")
+#   print(fc_arima)
+#   par(mfrow = c(3,1))
+#   plot(fc_arima, main = paste("ARIMA Model for", country_name),
+#        xlab = "Year", ylab = "Contribution to Global Warming", col = "blue", lwd = 2)
+#   lines(fitted(arima_model), col = "red", lwd = 2)
+#   legend("topleft", legend = c("Forecast", "Fitted"), col = c("blue", "red"), lty = 1, lwd = 2)
+#   accuracy_arima <- accuracy(fc_arima)
+#   cat("Accuracy Metrics for ARIMA Model -", country_name, ":\n")
+#   print(accuracy_arima)
+#   residuals_arima <- residuals(arima_model)
+#   cat("Residual Summary for ARIMA Model -", country_name, ":\n")
+#   print(summary(residuals_arima))
+#   Acf(residuals_arima, main = paste("ACF of Residuals for ARIMA Model -", country_name),lag.max = 180)
+#   pacf(residuals_arima, main = paste("PACF of Residuals for ARIMA Model -", country_name),lag.max = 180)
+#   par(mfrow = c(1, 1))
+#   return(list(arima_model = arima_model, fc_arima = fc_arima, accuracy_arima = accuracy_arima))
+# }
+
 perform_arima <- function(data, country_name, forecast_horizon = 5) {
   ts_data <- ts(data, frequency = 1, start = c(1940, 1))
-  arima_model <- auto.arima(ts_data)
+  # Differencing to make data stationary
+  ts_data_diff <- diff(ts_data)
+  ts_data_diff <- diff(ts_data_diff, lag = 1)
+  # Fit ARIMA on differenced data
+  arima_model <- auto.arima(ts_data_diff)
   fc_arima <- forecast(arima_model, h = forecast_horizon)
   cat("5 Years Forecast for  ", country_name, ":\n")
   print(fc_arima)
+  # Inverse differencing to return forecasts to original scale
+  fc_arima$mean <- cumsum(c(ts_data[length(ts_data)], fc_arima$mean)) # Adding last actual value for correct forecast alignment
+
   par(mfrow = c(3, 1))
   plot(fc_arima, main = paste("ARIMA Model for", country_name),
        xlab = "Year", ylab = "Contribution to Global Warming", col = "blue", lwd = 2)
   lines(fitted(arima_model), col = "red", lwd = 2)
   legend("topleft", legend = c("Forecast", "Fitted"), col = c("blue", "red"), lty = 1, lwd = 2)
+
   accuracy_arima <- accuracy(fc_arima)
   cat("Accuracy Metrics for ARIMA Model -", country_name, ":\n")
   print(accuracy_arima)
+
   residuals_arima <- residuals(arima_model)
   cat("Residual Summary for ARIMA Model -", country_name, ":\n")
   print(summary(residuals_arima))
   Acf(residuals_arima, main = paste("ACF of Residuals for ARIMA Model -", country_name), lag.max = 180)
   pacf(residuals_arima, main = paste("PACF of Residuals for ARIMA Model -", country_name), lag.max = 180)
+
   par(mfrow = c(1, 1))
   return(list(arima_model = arima_model, fc_arima = fc_arima, accuracy_arima = accuracy_arima))
 }

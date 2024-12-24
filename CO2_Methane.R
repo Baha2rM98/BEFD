@@ -163,8 +163,8 @@ diff_seasonal <- diff(diff1, lag = 12)
 tsdisplay(diff_seasonal, lag.max = 22 * 12)
 
 
-# first arima model
-arima_model1 <- Arima(CO2_ts, order = c(1, 1, 1), seasonal = c(0, 1, 0))
+# SARIMA model
+arima_model1 <- Arima(CO2_ts, order = c(1, 1, 1), seasonal = list(order = c(0, 1, 0), period = 12))
 fit1 <- fitted(arima_model1)
 
 plot(CO2_ts)
@@ -355,8 +355,8 @@ diff_seasonal <- diff(diff1, lag = 12)
 tsdisplay(diff_seasonal, lag.max = 50 * 12)
 
 
-# first arima model
-arima_model1 <- Arima(Methane_ts, order = c(1, 1, 1), seasonal = c(0, 1, 0))
+# SARIMA model
+arima_model1 <- Arima(Methane_ts, order = c(1, 1, 1), seasonal = list(order = c(0, 1, 0), period = 12))
 fit1 <- fitted(arima_model1)
 
 plot(Methane_ts)

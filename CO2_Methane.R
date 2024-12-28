@@ -9,7 +9,7 @@ library(gridExtra)
 ############################################################################################################
 # Data presentation
 ############################################################################################################
-df <- read.csv("D:\\University\\2024 - 2025 B\\Business,Economic, and Financial data\\global-co2-concentration.csv")
+df <- read.csv("global-co2-concentration.csv")
 View(df)
 attach(df)
 head(df)
@@ -209,7 +209,7 @@ pacf(res_fit2, main = "PACF of Residuals (Multiplicative)",lag.max = 22*12)
 par(mfrow = c(1,1))
 
 ########################################################################################################
-# SArima Models
+# SARIMA Models
 ########################################################################################################
 diff1 <- diff(CO2_ts)
 
@@ -317,7 +317,7 @@ accuracy_arima_fit2 <- accuracy(f2)
 ##################################################################################################################
 # Methane
 ##################################################################################################################
-df2 <- read.csv("D:\\University\\2024 - 2025 B\\Business,Economic, and Financial data\\global-methane-concentrations.csv")
+df2 <- read.csv("global-methane-concentrations.csv")
 View(df2)
 attach(df2)
 head(df2)

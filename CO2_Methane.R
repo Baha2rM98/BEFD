@@ -9,7 +9,7 @@ library(gridExtra)
 ############################################################################################################
 # Data presentation
 ############################################################################################################
-df <- read.csv("global-co2-concentration.csv")
+df <- read.csv("data/global-co2-concentration.csv")
 View(df)
 attach(df)
 head(df)
@@ -317,7 +317,7 @@ accuracy_arima_fit2 <- accuracy(f2)
 ##################################################################################################################
 # Methane
 ##################################################################################################################
-df2 <- read.csv("global-methane-concentrations.csv")
+df2 <- read.csv("data/global-methane-concentrations.csv")
 View(df2)
 attach(df2)
 head(df2)
@@ -329,8 +329,6 @@ seasonplot(Methane_ts, ylab = "Monthly concentration of Atmospheric Carbon Dioxi
            main = "Seasonal Plot: concentration of Atmospheric Carbon Dioxide", 
            year.labels = TRUE, year.labels.left = TRUE, 
            col = 1:40, pch = 19)
-
-library(gridExtra) # For arranging multiple plots
 
 # Perform STL decomposition
 decomposition <- stl(Methane_ts, s.window = 'periodic')
@@ -393,28 +391,42 @@ pacf(resmodel1, lag.max = 50*12)
 ts.plot(Methane_ts, type="o")
 
 ## we fit a linear model with the tslm function
-TSLM_model2<- tslm(Methane_ts ~ trend + season, data = df2)
+TSLM_model2<- tslm(Methane_ts~ trend + season, data = df2)
 
 ###obviously it gives the same results of the first model
 summary(TSLM_model2)
 accuracy(TSLM_model2)
 
-plot(Methane_ts, xlab="Time(Month of Year)", ylab="Monthly concentration of Atmospheric Methane")
-lines(fitted(TSLM_model2), col=2)
+par(mfrow = c(1, 2))
+par(cex.lab = 0.7, cex.axis = 0.7, cex.main = 0.6)
 
-TSLM_res<- residuals(TSLM_model2)
-plot(TSLM_res,,xlab="Time(Month of Year)", ylab="residuals")
-Acf(TSLM_res, lag.max = 50*12)
-pacf(TSLM_res, lag.max = 50*12)
-dwtest(TSLM_model)
+plot(Methane_ts,
+     xlab = "Time (Month of Year)",
+     ylab = "Monthly concentration of Atmospheric Methane",
+     main = "Time Series with Fitted Values")
+lines(fitted(TSLM_model2), col = 2)
+
 
 TSLM_fore <- forecast(TSLM_model2, h = 12)
-plot(TSLM_fore)
+plot(TSLM_fore,
+     main = "Forecast for the Next 12 Months for Atmospheric Methane",
+     xlab = "Time (Month of Year)",
+     ylab = "Monthly concentration of Atmospheric Methane")
+
+par(mfrow = c(1, 1))
+
+TSLM_res<- residuals(TSLM_model2)
+par(mfrow = c(1,3))
+par(cex.lab = 0.9, cex.axis = 0.9, cex.main = 0.9)
+plot(TSLM_res,xlab="Time(Month of Year)", ylab="residuals", main = "TSLM Model Residuals Plot")
+Acf(TSLM_res, lag.max = 22*12,xlab="Time(Month of Year)", ylab="ACF for Atmospheric Methane" , main = "ACF for TSLM Model")
+pacf(TSLM_res, lag.max = 22*12,xlab="Time(Month of Year)", ylab="PACF for Atmospheric Methane",main = "PACF for TSLM Model")
+par(mfrow = c(1,1))
+dwtest(TSLM_model2)
 
 ################################################################################
 ##Exponential Smoothing methods
 ################################################################################
-##1.Simple exponential smoothing
 autoplot(Methane_ts)+ylab("Monthly concentration of Atmospheric Methane")+xlab("Time(Month of Year)")
 
 fit1<- ses(Methane_ts, alpha=0.2, initial="simple", h=5)
@@ -424,22 +436,22 @@ fit3<- ses(Methane_ts, h=5)
 
 par(mfrow = c(3,1))
 
-plot(Methane_ts, ylab = "Monthly concentration of Atmospheric Methane", 
+plot(Methane_ts, ylab = "Monthly concentration of Atmospheric Methane",
      xlab = "Time (Month of Year)", main = "Original Time Series with Fit 1")
 lines(fitted(fit1), col = "blue", type = "o", lwd = 2)
 
-plot(Methane_ts, ylab = "Monthly concentration of Atmospheric Carbon Dioxide", 
+plot(Methane_ts, ylab = "Monthly concentration of Atmospheric Methane",
      xlab = "Time (Month of Year)", main = "Original Time Series with Fit 2")
 lines(fitted(fit2), col = "red", type = "o", lwd = 2)
 
 
-plot(Methane_ts, ylab = "Monthly concentration of Atmospheric Carbon Dioxide", 
+plot(Methane_ts, ylab = "Monthly concentration of Atmospheric Methane",
      xlab = "Time (Month of Year)", main = "Original Time Series with Fit 3")
 lines(fitted(fit3), col = "green", type = "o", lwd = 2)
 par(mfrow = c(1,1))
 
 
-fc<- ses(Methane_ts, h=60)
+fc<- ses(Methane_ts, h=12)
 accuracy(fc)
 
 summary(fc)
@@ -450,8 +462,8 @@ autoplot(fc)+
 
 
 ##2.Trend methods (Holt method)
-fc_Holt<- holt(Methane_ts, h=60)
-fc2_Holt<- holt(Methane_ts, damped=T, phi=0.9, h=60)
+fc_Holt<- holt(Methane_ts, h=12)
+fc2_Holt<- holt(Methane_ts, damped=T, phi=0.9, h=12)
 
 autoplot(Methane_ts)+
   autolayer(fc_Holt, series="Holt's method", PI=F)+
@@ -472,26 +484,36 @@ autoplot(Methane_ts, series = "Original Time Series") +
   theme_minimal() +
   scale_color_manual(
     values = c("Original Time Series" = "black",
-               "Additive Holt-Winters" = "blue", 
+               "Additive Holt-Winters" = "blue",
                "Multiplicative Holt-Winters" = "red")
+  ) +
+  theme(
+    plot.title = element_text(size = 8),
+    axis.title.x = element_text(size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.text = element_text(size = 8),
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8)
   )
+
 
 # Evaluate performance of fit1 and fit2
 accuracy_fit1 <- accuracy(fit1)
 accuracy_fit2 <- accuracy(fit2)
 
 par(mfrow = c(2,2))
+par(cex.lab = 0.7, cex.axis = 0.7, cex.main = 0.7)
 res_fit1 <- residuals(fit1)
-Acf(res_fit1, main = "ACF of Residuals (Additive)", lag.max = 50*12)
-pacf(res_fit1, main = "PACF of Residuals (Additive)",lag.max = 50*12)
+Acf(res_fit1, main = "ACF of Residuals (Additive)", lag.max = 22*12)
+pacf(res_fit1, main = "PACF of Residuals (Additive)",lag.max = 22*12)
 
 res_fit2 <- residuals(fit2)
-Acf(res_fit2, main = "ACF of Residuals (Multiplicative)",lag.max = 50*12)
-pacf(res_fit2, main = "PACF of Residuals (Multiplicative)",lag.max = 50*12)
+Acf(res_fit2, main = "ACF of Residuals (Multiplicative)",lag.max = 22*12)
+pacf(res_fit2, main = "PACF of Residuals (Multiplicative)",lag.max = 22*12)
 par(mfrow = c(1,1))
 
 ########################################################################################################
-# Arima Models
+# SARIMA Models
 ########################################################################################################
 diff1 <- diff(Methane_ts)
 
@@ -499,41 +521,103 @@ diff1 <- diff(Methane_ts)
 diff_seasonal <- diff(diff1, lag = 12)
 
 # Display ACF and PACF after differencing
-tsdisplay(diff_seasonal, lag.max = 50*12)
+tsdisplay(diff_seasonal, lag.max = 22*12)
 
 
 # first arima model
-arima_model1 <- Arima(Methane_ts, order = c(1, 1, 1), seasonal = c(0, 1, 0))
-fit1<- fitted(arima_model1)
+sarima_model <- Arima(Methane_ts, order = c(1, 1, 1), seasonal = list(order = c(0, 1, 0), period = 12))
 
-plot(Methane_ts)
-lines(fit1, col=2)
+fit1<- fitted(sarima_model)
 
-f1<- forecast(arima_model1,h = 60)
-plot(f1)
+par(mfrow = c(1, 2))
+par(cex.lab = 0.7, cex.axis = 0.7, cex.main = 0.7)
+plot(Methane_ts,
+     xlab = "Time (Month of Year)",
+     ylab = "Monthly concentration of Atmospheric Methane",
+     main = "Time Series with Fitted Values")
+lines(fitted(sarima_model), col = 2)
+legend("topleft",
+       legend = c("Observed", "Fitted (SARIMA)"),
+       col = c("black", "red"),
+       lty = c(1, 1),
+       bty = "n",
+       cex = 0.8)
 
-r1<- residuals(arima_model1)
-tsdisplay(r2, lag.max = 50*12) 
 
-accuracy_arima_fit1 <- accuracy(f1)
+sarima_fore <- forecast(sarima_model, h = 12)
+plot(sarima_fore,
+     main = "Forecast for the Next 12 Months for Atmospheric Methane",
+     xlab = "Time (Month of Year)",
+     ylab = "Monthly concentration of Atmospheric Methane")
+legend("topleft",
+       legend = c("Forecast", "95% Prediction Interval"),
+       col = c("blue", "gray"),
+       lty = c(1, NA),
+       fill = c(NA, "gray"),
+       bty = "n",
+       cex = 0.8)
+
+par(mfrow = c(1, 1))
+
+
+par(mfrow = c(1,2))
+par(cex.lab = 1, cex.axis = 1, cex.main = 1)
+res_fit3 <- residuals(sarima_model)
+Acf(res_fit3, main = "ACF of Residuals(Sarima)", lag.max = 22*12)
+pacf(res_fit3, main = "PACF of Residuals(Sarima)",lag.max = 22*12)
+par(mfrow = c(1,1))
+
+accuracy_arima_fit1 <- accuracy(sarima_model)
 
 
 # second arima model (auto arima)
-auto.a<- auto.arima(Methane_ts)
-auto.a_fit1<- fitted(auto.a)
+par(mfrow = c(1, 2))
+par(cex.lab = 0.7, cex.axis = 0.7, cex.main = 0.7)
 
-plot(Methane_ts)
-lines(auto.a_fit1, col=2)
+auto.a <- auto.arima(Methane_ts)
+auto.a_fit1 <- fitted(auto.a)
+summary(auto.a)
 
-f2<- forecast(auto.a,h = 60)
-plot(f2)
+par(mfrow = c(1, 2))
+par(cex.lab = 0.7, cex.axis = 0.7, cex.main = 0.7)
+plot(Methane_ts,
+     xlab = "Time (Month of Year)",
+     ylab = "Monthly concentration of Atmospheric Methane",
+     main = "Time Series with Fitted Values")
+lines(auto.a_fit1, col = 2)
+legend("topleft",
+       legend = c("Observed", "Fitted (Auto ARIMA)"),
+       col = c("black", "red"),
+       lty = c(1, 1),
+       bty = "n",
+       cex = 0.8)
 
-r2<- residuals(auto.a)
-tsdisplay(r2, lag.max = 22*12, main = 'Residuals for Auto-Arima model') 
+f2 <- forecast(auto.a, h = 12)
+plot(f2,
+     main = "Forecast for the Next 12 Months for Atmospheric Methane",
+     xlab = "Time (Month of Year)",
+     ylab = "Monthly concentration of Atmospheric Methane")
+legend("topleft",
+       legend = c("Forecast", "95% Prediction Interval"),
+       col = c("blue", "gray"),
+       lty = c(1, NA),
+       fill = c(NA, "gray"),
+       bty = "n",
+       cex = 0.8)
+
+par(mfrow = c(1, 1))
+
+
+par(mfrow = c(1,2))
+par(cex.lab = 1, cex.axis = 1, cex.main = 1)
+res_fit3 <- residuals(auto.a)
+Acf(res_fit3, main = "ACF of Residuals(ARIMA)", lag.max = 22*12)
+pacf(res_fit3, main = "PACF of Residuals(ARIMA)",lag.max = 22*12)
+par(mfrow = c(1,1))
 
 accuracy_arima_fit2 <- accuracy(f2)
 #########################################################################################################
-g1a <- gam(CO2_ts~s(tt))
+g1a <- gam(Methane_ts~s(tt))
 par(mfrow=c(1,2))
 plot(g1a, se=T)
 summary(g1a)

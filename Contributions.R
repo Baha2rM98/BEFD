@@ -252,7 +252,7 @@ Africa_holt <- perform_holt(Africa, "Africa")
 ##########################################################################################################################
 ## Arima Models
 ##########################################################################################################################
-perform_arima <- function(data, country_name, forecast_horizon = 5) {
+perform_arima <- function(data, country_name, forecast_horizon = 5, lag=3) {
   ts_data <- ts(data, frequency = 1, start = c(1850, 1))
   arima_model <- auto.arima(ts_data)
   fc_arima <- forecast(arima_model, h = forecast_horizon)
@@ -272,17 +272,18 @@ perform_arima <- function(data, country_name, forecast_horizon = 5) {
   Acf(residuals_arima, main = paste("ACF of Residuals for ARIMA Model -", country_name), lag.max = 180)
   pacf(residuals_arima, main = paste("PACF of Residuals for ARIMA Model -", country_name), lag.max = 180)
   par(mfrow = c(1, 1))
-  return(list(arima_model = arima_model, fc_arima = fc_arima, accuracy_arima = accuracy_arima))
+  box_pierce <- Box.test(residuals_arima, type = "Box-Pierce", lag = lag)
+  return(list(arima_model = arima_model, fc_arima = fc_arima, accuracy_arima = accuracy_arima, box_pierce_result = box_pierce))
 }
 
 USA_arima <- perform_arima(USA, "USA")
 China_arima <- perform_arima(China, "China")
 European_Union_arima <- perform_arima(European_Union, "European Union")
-Russia_arima <- perform_arima(Russia, "Russia")
-Brazil_arima <- perform_arima(Brazil, "Brazil")
+Russia_arima <- perform_arima(Russia, "Russia", lag = 1)
+Brazil_arima <- perform_arima(Brazil, "Brazil", lag = 2)
 India_arima <- perform_arima(India, "India")
 United_kingdom_arima <- perform_arima(United_kingdom, "United Kingdom")
-South_America_arima <- perform_arima(South_America, "South America")
+South_America_arima <- perform_arima(South_America, "South America", lag = 1)
 Africa_arima <- perform_arima(Africa, "Africa")
 
 ##############################################################################################################################

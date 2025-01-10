@@ -5,6 +5,7 @@ library(DIMORA)
 library(fpp2)
 library(dplyr)
 library(car)
+library(splines)
 #############################################################################################################################
 # Data presentation
 #############################################################################################################################
@@ -376,3 +377,104 @@ ggplot(combined_holt_data, aes(x = Year, y = Contribution, color = Country, line
   scale_color_brewer(palette = "Set1") +
   scale_linetype_manual(values = c("Actual" = "solid", "Forecast" = "dashed")) +
   theme(legend.title = element_text(size = 12), legend.text = element_text(size = 10))
+
+#############################################################################################################################
+## SPLine
+#############################################################################################################################
+perform_spline_regression <- function(data, country_name, forecast_horizon = 5) {
+  # Create a time series object
+  ts_data <- ts(data, frequency = 1, start = c(1940, 1))
+
+  # Generate time indices for the data
+  time_index <- seq_along(ts_data)
+
+  # Fit natural spline model
+  spline_model <- lm(ts_data ~ ns(time_index, df = 5))
+
+  # Forecasting using the spline model
+  future_time <- seq(length(ts_data) + 1, length(ts_data) + forecast_horizon)
+  forecast_values <- predict(spline_model, newdata = data.frame(time_index = future_time))
+
+  # Combine actual and forecasted data for plotting
+  full_time <- c(time_index, future_time)
+  fitted_values <- fitted(spline_model)
+  full_data <- c(fitted_values, forecast_values)
+
+  # Plot the original data, fitted line, and forecasts
+  par(mfrow = c(2, 1))
+  plot(full_time, full_data, type = "l", main = paste("Natural Spline Model for", country_name),
+       xlab = "Year", ylab = "Contribution to Global Warming", col = "blue", lwd = 2)
+  points(time_index, ts_data, col = "red", pch = 20)
+  lines(time_index, fitted_values, col = "green", lwd = 2)
+  legend("topleft", legend = c("Forecast", "Actual", "Fitted"), col = c("blue", "red", "green"), lty = c(1, NA, 1), pch = c(NA, 20, NA), lwd = 2)
+
+  # Residual analysis
+  residuals_spline <- residuals(spline_model)
+  cat("Residual Summary for NS Spline Model -", country_name, ":\n")
+  print(summary(residuals_spline))
+  Acf(residuals_spline, main = paste("ACF of Residuals for NS Spline Model -", country_name), lag.max = 180)
+
+  # Durbin-Watson Test for autocorrelation
+  dw_test <- dwtest(spline_model)
+  cat("Durbin-Watson Test Result for NS Spline Model -", country_name, ":\n")
+  print(dw_test)
+
+  par(mfrow = c(1, 1))
+
+  return(list(spline_model = spline_model, forecast_values = forecast_values, residuals_spline = residuals_spline, durbin_watson_test = dw_test))
+}
+
+USA_result <- perform_spline_regression(USA, "USA")
+China_result <- perform_spline_regression(China, "China")
+Russia_result <- perform_spline_regression(Russia, "Russia")
+Brazil_result <- perform_spline_regression(Brazil, "Brazil")
+India_result <- perform_spline_regression(India, "India")
+United_kingdom_result <- perform_spline_regression(United_kingdom, "United Kingdom")
+#
+# combine_forecast_data <- function(actual_data, forecasts, country_names, start_year_actual = 1850) {
+#   combined_data <- data.frame()
+#
+#   for (i in seq_along(forecasts)) {
+#     actual_years <- seq(start_year_actual, by = 1, length.out = length(actual_data[[i]]))
+#     actual_df <- data.frame(
+#       Year = actual_years,
+#       Contribution = actual_data[[i]],
+#       Country = country_names[i],
+#       Type = "Actual"
+#     )
+#
+#     # Extract the forecast values directly
+#     forecast_values <- forecasts[[i]]
+#
+#     forecast_years <- seq(max(actual_years) + 1, by = 1, length.out = length(forecast_values))
+#     forecast_df <- data.frame(
+#       Year = forecast_years,
+#       Contribution = as.numeric(forecast_values),
+#       Country = country_names[i],
+#       Type = "Forecast"
+#     )
+#
+#     combined_data <- rbind(combined_data, actual_df, forecast_df)
+#   }
+#
+#   return(combined_data)
+# }
+#
+# # Data for spline forecasts
+# combined_spline_data <- combine_forecast_data(
+#   actual_data = list(USA, China, Russia, Brazil, India, United_kingdom),
+#   forecasts = list(USA_result$forecast_values, China_result$forecast_values, Russia_result$forecast_values,
+#                    Brazil_result$forecast_values, India_result$forecast_values, United_kingdom_result$forecast_values),
+#   country_names = c("USA", "China", "Russia", "Brazil", "India", "United Kingdom")
+# )
+#
+# # Plot for spline forecasts
+# ggplot(combined_spline_data, aes(x = Year, y = Contribution, color = Country, linetype = Type)) +
+#   geom_line(size = 1) +
+#   ggtitle("Yearly Contribution to Global Warming with Spline Point Forecasts") +
+#   xlab("Year") +
+#   ylab("Yearly Share of Contribution to Global Warming") +
+#   theme_minimal() +
+#   scale_color_brewer(palette = "Set1") +
+#   scale_linetype_manual(values = c("Actual" = "solid", "Forecast" = "dashed")) +
+#   theme(legend.title = element_text(size = 12), legend.text = element_text(size = 10))
